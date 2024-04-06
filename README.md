@@ -1,7 +1,7 @@
 ### To start the application
 
 * clone the repository from github:
- - `git clone <'https://github.com/shreyanshgoyal2004/Hospital-Management-System.git'>`
+ - `git clone <'https://github.com/shreyanshgoyal2004/Library-Management-System.git'>`
 
 * Now create your virtual environment
 - 'python -m venv venv'
