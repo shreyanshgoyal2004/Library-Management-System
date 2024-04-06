@@ -1,60 +1,31 @@
 from bson import ObjectId
-from fastapi import FastAPI, HTTPException, Query
-from dotenv import dotenv_values
-from pymongo import MongoClient
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException, Query, status
 from typing import Annotated
-
-config = dotenv_values(".env")
+from model.create_student import Item
+from model.update_student import updateItem
+from db import collection
 
 app = FastAPI()
-
-# connect to Mongodb
-
-client = MongoClient(config["MONGODB_CONNECTION_URI"])
-db = client[config["DB_NAME"]]
-collection = db[config["COLLECTION_NAME"]]
-
-print("Connected to Mongodb")
-
 
 @app.get("/")
 def home():
     return {"Hello world"}
 
-# Define a data model
-class obt(BaseModel):
-    city: str
-    country: str
-
-class Item(BaseModel):
-    name: str
-    age: int
-    address: obt
-
-class updobt(BaseModel):
-    country: str|None = None
-    city: str|None = None
-
-class updateItem(BaseModel):
-    name: str|None = None
-    age: int|None = None
-    address: updobt|None = None
 
 # Define route to create an item
 
-@app.post("/students/")
+@app.post("/students/", status_code=status.HTTP_201_CREATED, description= "description: A JSON response sending back the ID of the newly created student record")
 async def create_student(item: Item):
     data = item.dict()
     result = collection.insert_one(data)
     return {"id": str(result.inserted_id)}
 
 
-@app.get("/students")
+@app.get("/students/", status_code=status.HTTP_200_OK)
 async def get_student(country:str|None=None, age: Annotated[int|None, Query(ge=0)]=None):
     query = {}
     if country:
-        query.update({"country":country})
+        query.update({"address.country":country})
     if age:
         query.update({"age": {"$gte":age}})
                      
@@ -67,7 +38,8 @@ async def get_student(country:str|None=None, age: Annotated[int|None, Query(ge=0
 
 
 # Define route to get an student by ID
-@app.get("/students/{students_id}")
+
+@app.get("/students/{students_id}", status_code=status.HTTP_200_OK, description="sample response")
 async def read_item(students_id: str):
     # return type(students_id)
     try:
@@ -78,11 +50,10 @@ async def read_item(students_id: str):
         else:
             raise HTTPException(status_code=404, detail="Student not found")
     except Exception as e:
-        # raise HTTPException(status_code=500, detail="Internal server error")
-        return e
+        raise HTTPException(status_code=500, detail="Internal server error")
     
-@app.patch("/students/{students_id}")
-async def update_item(students_id: str, upd: updateItem|None = None):
+@app.patch("/students/{students_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def update_student(students_id: str, upd: updateItem|None = None):
     # return upd
     try:
         # Check if student exists
@@ -113,8 +84,8 @@ async def update_item(students_id: str, upd: updateItem|None = None):
     except Exception as e:
         raise HTTPException(status_code=204, detail="Unable to update")
     
-@app.delete("/students/{students_id}")
-def delete_item(students_id: str):
+@app.delete("/students/{students_id}", status_code=status.HTTP_200_OK)
+def delete_student(students_id: str):
     try:
         # Check if student exists
         student = collection.find_one({"_id": ObjectId(students_id)})
