@@ -7,22 +7,22 @@ from db import collection
 
 app = FastAPI()
 
-@app.get("/")
-def home():
-    return {"Hello world"}
+# @app.get("/")
+# def home():
+#     return {"Hello world"}
 
 
 # Define route to create an item
 
-@app.post("/students/", status_code=status.HTTP_201_CREATED, description= "description: A JSON response sending back the ID of the newly created student record")
-async def create_student(item: Item):
+@app.post("/students/", status_code=status.HTTP_201_CREATED, description= "API to create a student in the system. All fields are mandatory and required while creating the student in the system.")
+async def create_students(item: Item):
     data = item.dict()
     result = collection.insert_one(data)
     return {"id": str(result.inserted_id)}
 
 
-@app.get("/students/", status_code=status.HTTP_200_OK)
-async def get_student(country:str|None=None, age: Annotated[int|None, Query(ge=0)]=None):
+@app.get("/students/", status_code=status.HTTP_200_OK, description="An API to find a list of students. You can apply filters on this API by passing the query parameters as listed below.")
+async def list_students(country:str|None=None, age: Annotated[int|None, Query(ge=0)]=None):
     query = {}
     if country:
         query.update({"address.country":country})
@@ -39,8 +39,8 @@ async def get_student(country:str|None=None, age: Annotated[int|None, Query(ge=0
 
 # Define route to get an student by ID
 
-@app.get("/students/{students_id}", status_code=status.HTTP_200_OK, description="sample response")
-async def read_item(students_id: str):
+@app.get("/students/{students_id}", status_code=status.HTTP_200_OK)
+async def fetch_students(students_id: str):
     # return type(students_id)
     try:
         objectinstance = ObjectId(students_id)
@@ -52,8 +52,8 @@ async def read_item(students_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal server error")
     
-@app.patch("/students/{students_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def update_student(students_id: str, upd: updateItem|None = None):
+@app.patch("/students/{students_id}", status_code=status.HTTP_204_NO_CONTENT, description="API to update the student's properties based on information provided. Not mandatory that all information would be sent in PATCH, only what fields are sent should be updated in the Database.")
+async def update_students(students_id: str, upd: updateItem|None = None):
     # return upd
     try:
         # Check if student exists
@@ -85,7 +85,7 @@ async def update_student(students_id: str, upd: updateItem|None = None):
         raise HTTPException(status_code=204, detail="Unable to update")
     
 @app.delete("/students/{students_id}", status_code=status.HTTP_200_OK)
-def delete_student(students_id: str):
+def delete_students(students_id: str):
     try:
         # Check if student exists
         student = collection.find_one({"_id": ObjectId(students_id)})
