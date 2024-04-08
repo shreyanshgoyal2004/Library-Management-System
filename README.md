@@ -15,3 +15,6 @@
 * Now start the api
 - 'uvicorn main:app --reload'
 
+* To try various routes head over to 
+ - 'https://library-management-system-p8gh.onrender.com/docs'
+

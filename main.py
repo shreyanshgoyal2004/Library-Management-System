@@ -12,7 +12,7 @@ app = FastAPI()
 #     return {"Hello world"}
 
 
-# Define route to create an item
+# Define route to create an student
 
 @app.post("/students/", status_code=status.HTTP_201_CREATED, description= "API to create a student in the system. All fields are mandatory and required while creating the student in the system.")
 async def create_students(item: Item):
@@ -41,7 +41,6 @@ async def list_students(country:str|None=None, age: Annotated[int|None, Query(ge
 
 @app.get("/students/{students_id}", status_code=status.HTTP_200_OK)
 async def fetch_students(students_id: str):
-    # return type(students_id)
     try:
         objectinstance = ObjectId(students_id)
         item = collection.find_one({"_id": objectinstance},{"_id":0})
@@ -54,17 +53,14 @@ async def fetch_students(students_id: str):
     
 @app.patch("/students/{students_id}", status_code=status.HTTP_204_NO_CONTENT, description="API to update the student's properties based on information provided. Not mandatory that all information would be sent in PATCH, only what fields are sent should be updated in the Database.")
 async def update_students(students_id: str, upd: updateItem|None = None):
-    # return upd
     try:
         # Check if student exists
         objectinstance = ObjectId(students_id)
         existing_student = collection.find_one({"_id": objectinstance},{"_id":0})
-        # return existing_student["address"]["country"]
         if not existing_student:
             raise HTTPException(status_code=404, detail="student not found")
         
         # Construct update fields
-        # return existing_student
         if upd.name:
             existing_student["name"] = upd.name
         if upd.age:
@@ -74,15 +70,14 @@ async def update_students(students_id: str, upd: updateItem|None = None):
         if upd.address and upd.address.city:
             existing_student['address']['city'] = upd.address.city
         
-        # return existing_student
-        # Update item
+        # Update student
         updated_item = {"$set": existing_student}
         objectinstance = ObjectId(students_id)
         collection.update_one({"_id": objectinstance}, updated_item)
         
         return {"message": "student updated successfully"}
     except Exception as e:
-        raise HTTPException(status_code=204, detail="Unable to update")
+        raise HTTPException(status_code=422, detail="Validation error")
     
 @app.delete("/students/{students_id}", status_code=status.HTTP_200_OK)
 def delete_students(students_id: str):
