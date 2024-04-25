@@ -31,12 +31,13 @@ async def get_rate(redis: Redis, user_id: str):
 
 # function to add new user with count 1
 async def add_rate(redis: Redis, user_id: str, count: int):
-    redis.set(f"rate_limit:{user_id}", count, ex=120)
+    redis.set(f"rate_limit:{user_id}", count, ex=86400)
 
 # function to increase count of the existing user
 async def update_rate(redis: Redis, user_id: str):
     redis.incr(f"rate_limit:{user_id}")
 
+# function to not allow user to acces route if they exceed a particular rate limit
 # async def check_rate_limit(x_user_id: str = Depends(get_user_id), rate: int = Depends(get_rate)) -> None:
 #     if rate >= 3:
 #         raise HTTPException(status_code=429, detail="Rate limit exceeded")
